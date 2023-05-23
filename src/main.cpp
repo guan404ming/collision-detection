@@ -6,8 +6,7 @@
 // Global Variable
 double r = 1;
 int count = 0;
-int minCoord = 0, maxCoord = 100;
-int minLength = 20, maxLength = 20;
+int maxCoord = 10;
 
 struct Dot
 {
@@ -90,12 +89,12 @@ bool check(Dot A, Dot B)
     count++;
 
     // print the answer
-    // if (distance < 2 * r)
-    // {
-    //     std::cout << "(" << A.x << ", " << A.y << ")"
-    //               << " "
-    //               << "(" << B.x << ", " << B.y << ")\n";
-    // }
+    if (distance < 2 * r)
+    {
+        std::cout << "(" << A.x << ", " << A.y << ")"
+                  << " "
+                  << "(" << B.x << ", " << B.y << ")\n";
+    }
 
     return distance < 2 * r;
 }
@@ -141,88 +140,82 @@ bool checkQuadTree(const QuadTreeNode *node)
     return false;
 }
 
-std::vector<Dot> generateDots(int minCoord, int maxCoord)
+void test(std::vector<Dot> input_)
 {
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> lengthDist(minLength, maxLength);
+    // QuadTree
+    QuadTreeNode *root = new QuadTreeNode{Dot{0, maxCoord}, Dot{maxCoord, 0}};
+    constructQuadTree(input_, root);
+    count = 0;
+    checkQuadTree(root);
+    std::cout << "QuadTree: " << count << "\n\n";
 
-    int length = lengthDist(gen);
-    std::uniform_int_distribution<int> coordDist(minCoord, maxCoord);
-
-    std::vector<Dot> dots;
-    for (int i = 0; i < length; ++i)
+    // Basic
+    count = 0;
+    for (size_t i = 0; i < input_.size() - 1; i++)
     {
-        int x = coordDist(gen);
-        int y = coordDist(gen);
-        dots.emplace_back(x, y);
+        for (size_t j = i + 1; j < input_.size(); j++)
+        {
+            check(input_[i], input_[j]);
+        }
     }
-
-    // for (auto i : dots)
-    // {
-    //     std::cout << "Dot: (" << i.x << ", " << i.y << ")\n";
-    // }
-
-    return dots;
+    std::cout << "Basic: " << count << "\n\n";
+    std::cout << "====================" << "\n\n";
 }
 
 int main()
 {
-    // std::vector<Dot> input_{
-    //     Dot{4, 3}, Dot{9, 2}, Dot{4, 8}, Dot{5, 0}, Dot{2, 0},
-    //     Dot{9, 4}, Dot{8, 0}, Dot{4, 2}, Dot{2, 6}, Dot{4, 6},
-    //     Dot{10, 9}, Dot{7, 5}, Dot{10, 3}, Dot{5, 8}};
+    std::vector<Dot> input_1{
+        Dot{4, 3}, Dot{9, 2}, Dot{4, 8}, Dot{5, 0}, Dot{2, 0},
+        Dot{9, 4}, Dot{8, 0}, Dot{4, 2}, Dot{2, 6}, Dot{4, 6},
+        Dot{10, 9}, Dot{7, 5}, Dot{10, 3}, Dot{5, 8}};
 
-    // // QuadTree
-    // QuadTreeNode *root = new QuadTreeNode{Dot{0, maxCoord}, Dot{maxCoord, 0}};
-    // constructQuadTree(input_, root);
-    // count = 0;
-    // checkQuadTree(root);
-    // std::cout << "QuadTree: " << count << "\n\n";
+    // (4, 3) (4, 2)
+    // (9, 2) (10, 3)
+    // (4, 8) (5, 8)
+    // (9, 4) (10, 3)
+    test(input_1);
 
-    // // Basic
-    // count = 0;
-    // for (size_t i = 0; i < input_.size() - 1; i++)
-    // {
-    //     for (size_t j = i + 1; j < input_.size(); j++)
-    //     {
-    //         check(input_[i], input_[j]);
-    //     }
-    // }
-    // std::cout << "Basic: " << count << "\n";
+    std::vector<Dot> input_2{Dot{4, 3}, Dot{9, 2}, Dot{9, 1}};
 
-    for (size_t i = 1; i < 11; i++)
-    {
-        minLength = i, maxLength = i;
-        int basicSum = 0, quadSum = 0;
-        for (size_t j = 0; j < 10000; j++)
-        {
-            std::vector<Dot> input = generateDots(minCoord, maxCoord);
+    // (9, 2) (9, 1)
+    test(input_2);
 
-            // QuadTree
-            QuadTreeNode *root = new QuadTreeNode{Dot{0, maxCoord}, Dot{maxCoord, 0}};
-            constructQuadTree(input, root);
-            count = 0;
-            checkQuadTree(root);
-            quadSum += count;
-            // std::cout << "QuadTree: " << count << "\n";
+    std::vector<Dot> input_3{Dot{1, 2}, Dot{1, 2}, Dot{2, 3}, Dot{3, 4}, Dot{4, 2}};
 
-            // Basic
-            count = 0;
-            for (size_t i = 0; i < input.size() - 1; i++)
-            {
-                for (size_t j = i + 1; j < input.size(); j++)
-                {
-                    check(input[i], input[j]);
-                }
-            }
-            basicSum += count;
-            // std::cout << "Basic: " << count << "\n";
-            
-        }
-        std::cout << basicSum / 10000 << "\n";
-        std::cout << quadSum / 10000 << "\n";
-    }
+    // (1, 2) (1, 2)
+    // (1, 2) (2, 3)
+    // (1, 2) (2, 3)
+    // (2, 3) (3, 4)
+    test(input_3);
+
+    std::vector<Dot> input_4{
+        Dot{0, 2}, Dot{1, 2}, Dot{2, 3}, Dot{4, 2},Dot{7, 1}, 
+        Dot{8, 8}, Dot{7, 6}, Dot{2, 4}, Dot{0, 9},Dot{10, 3}, 
+        Dot{2, 8},Dot{1, 0}, Dot{5, 8}, Dot{3, 6}, Dot{7, 2}};
+
+    // (0, 2) (1, 2)
+    // (1, 2) (2, 3)
+    // (2, 3) (2, 4)
+    // (7, 1) (7, 2)
+    test(input_4);
+
+    std::vector<Dot> input_5{
+        Dot{0, 2}, Dot{1, 2}, Dot{2, 3}, Dot{4, 2},Dot{7, 1}, 
+        Dot{8, 8}, Dot{7, 6}, Dot{2, 4}, Dot{0, 9},Dot{10, 3}, 
+        Dot{2, 8},Dot{1, 0}, Dot{5, 8}, Dot{3, 6}, Dot{7, 2},
+        Dot{6, 6},Dot{0, 1}, Dot{4, 4}, Dot{1, 7}, Dot{9, 7}};
+
+    // (0, 2) (1, 2)
+    // (0, 2) (0, 1)
+    // (1, 2) (2, 3)
+    // (1, 2) (0, 1)
+    // (2, 3) (2, 4)
+    // (7, 1) (7, 2)
+    // (8, 8) (9, 7)
+    // (7, 6) (6, 6)
+    // (2, 8) (1, 7)
+    // (1, 0) (0, 1)
+    test(input_5);
 
     return 0;
 }
